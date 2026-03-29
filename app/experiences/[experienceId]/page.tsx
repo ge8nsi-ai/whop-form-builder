@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Heading, Text, Button } from "@whop/react/components";
 import type { Form } from "@/lib/types";
-import { getForms } from "@/lib/storage";
+import { getAllForms } from "@/lib/storage";
 import { FormRenderer } from "@/components/form-viewer";
 
 export default function ExperiencePage({
@@ -11,16 +11,13 @@ export default function ExperiencePage({
 }: {
 	params: Promise<{ experienceId: string }>;
 }) {
-	const [companyId, setCompanyId] = useState<string>("");
 	const [forms, setForms] = useState<Form[]>([]);
 	const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 
 	useEffect(() => {
-		params.then(({ experienceId }) => {
-			setCompanyId(experienceId);
-			setForms(getForms(experienceId));
-		});
-	}, [params]);
+		// Load all forms regardless of which company created them
+		setForms(getAllForms());
+	}, []);
 
 	if (selectedForm) {
 		return (
