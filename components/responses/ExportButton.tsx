@@ -53,12 +53,12 @@ export function ExportButton({ form, responses }: Props) {
 
 	return (
 		<Button
-			variant="ghost"
+			variant="soft"
 			size="2"
 			onClick={handleExport}
 			disabled={responses.length === 0}
 		>
-			Export CSV
+			↓ Export CSV
 		</Button>
 	);
 }

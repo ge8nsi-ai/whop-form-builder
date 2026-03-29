@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@whop/react/components";
+import { Button, Card, Heading, Text } from "@whop/react/components";
 import { v4 as uuid } from "uuid";
 import type { Form, FormField } from "@/lib/types";
 import { saveResponse } from "@/lib/storage";
@@ -87,9 +87,9 @@ export function FormRenderer({ form }: Props) {
 	return (
 		<form onSubmit={handleSubmit} className="flex flex-col gap-6">
 			<div className="mb-2">
-				<h1 className="text-7 font-bold text-gray-12">{form.title}</h1>
+				<Heading size="6" weight="bold">{form.title}</Heading>
 				{form.description && (
-					<p className="text-4 text-gray-10 mt-1">{form.description}</p>
+					<Text size="3" color="gray" className="mt-1">{form.description}</Text>
 				)}
 			</div>
 
@@ -99,12 +99,12 @@ export function FormRenderer({ form }: Props) {
 						setValue(field.id, v),
 					)}
 					{errors[field.id] && (
-						<p className="text-2 text-red-9 mt-1">{errors[field.id]}</p>
+						<Text size="1" color="red" className="mt-1 block">{errors[field.id]}</Text>
 					)}
 				</div>
 			))}
 
-			<Button type="submit" variant="classic" size="4" className="mt-2">
+			<Button type="submit" variant="classic" size="3" className="mt-2">
 				Submit
 			</Button>
 		</form>

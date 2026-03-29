@@ -1,5 +1,7 @@
 "use client";
 
+import { Button, Card, Heading, Text } from "@whop/react/components";
+
 interface Props {
 	formTitle: string;
 }
@@ -7,12 +9,16 @@ interface Props {
 export function SuccessScreen({ formTitle }: Props) {
 	return (
 		<div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-			<div className="text-8">✅</div>
-			<h2 className="text-7 font-bold text-gray-12">Response Submitted!</h2>
-			<p className="text-4 text-gray-10 max-w-md">
+			<div className="w-16 h-16 rounded-full bg-green-a3 flex items-center justify-center text-7">
+				✓
+			</div>
+			<Heading size="6" weight="bold">
+				Response Submitted!
+			</Heading>
+			<Text size="3" color="gray" className="max-w-md">
 				Thank you for completing &quot;{formTitle}&quot;. Your response has been
 				recorded.
-			</p>
+			</Text>
 		</div>
 	);
 }

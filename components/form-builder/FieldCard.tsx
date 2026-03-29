@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Badge, Text } from "@whop/react/components";
 import type { FormField } from "@/lib/types";
 import { FIELD_TYPE_LABELS } from "@/lib/types";
 
@@ -31,10 +32,10 @@ export function FieldCard({ field, isEditing, onEdit }: Props) {
 		<div
 			ref={setNodeRef}
 			style={style}
-			className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+			className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all duration-150 ${
 				isEditing
-					? "border-blue-a8 bg-blue-a2"
-					: "border-gray-a4 bg-gray-a1 hover:bg-gray-a2"
+					? "border-blue-a8 bg-blue-a2 shadow-sm"
+					: "border-gray-a4 bg-gray-1 hover:bg-gray-a2 hover:border-gray-a5"
 			}`}
 			onClick={onEdit}
 		>
@@ -42,23 +43,31 @@ export function FieldCard({ field, isEditing, onEdit }: Props) {
 				type="button"
 				{...attributes}
 				{...listeners}
-				className="cursor-grab active:cursor-grabbing text-gray-8 hover:text-gray-11 text-4 p-1 bg-transparent border-none touch-none"
+				className="cursor-grab active:cursor-grabbing text-gray-8 hover:text-gray-11 text-4 p-1 bg-transparent border-none touch-none select-none"
 				onClick={(e) => e.stopPropagation()}
 			>
 				⠿
 			</button>
 			<div className="flex-1 min-w-0">
-				<div className="text-3 font-medium text-gray-12 truncate">
+				<Text size="3" weight="medium" className="block truncate">
 					{field.label}
-				</div>
-				<div className="text-2 text-gray-9">
-					{FIELD_TYPE_LABELS[field.type]}
-					{field.required && " · Required"}
+				</Text>
+				<div className="flex gap-2 mt-1">
+					<Badge variant="soft" size="1" color="gray">
+						{FIELD_TYPE_LABELS[field.type]}
+					</Badge>
+					{field.required && (
+						<Badge variant="soft" size="1" color="red">
+							Required
+						</Badge>
+					)}
 				</div>
 			</div>
-			<div className="text-2 text-gray-7 flex-shrink-0">
-				{field.options?.length ? `${field.options.length} options` : ""}
-			</div>
+			{field.options?.length ? (
+				<Text size="1" color="gray" className="flex-shrink-0">
+					{field.options.length} options
+				</Text>
+			) : null}
 		</div>
 	);
 }

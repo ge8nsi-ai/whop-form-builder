@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@whop/react/components";
+import { Table, Text } from "@whop/react/components";
 import type { Form, FormResponse } from "@/lib/types";
 
 interface Props {
@@ -11,9 +11,9 @@ interface Props {
 export function ResponseTable({ form, responses }: Props) {
 	if (responses.length === 0) {
 		return (
-			<div className="text-center py-12 text-gray-8">
-				<p className="text-4 mb-1">No responses yet</p>
-				<p className="text-3">Share your form to start collecting responses</p>
+			<div className="text-center py-12">
+				<Text size="4" color="gray" className="block mb-1">No responses yet</Text>
+				<Text size="2" color="gray">Share your form to start collecting responses</Text>
 			</div>
 		);
 	}
@@ -22,54 +22,47 @@ export function ResponseTable({ form, responses }: Props) {
 		if (value === undefined || value === null) return "—";
 		if (Array.isArray(value)) return value.join(", ");
 		if (typeof value === "number" && form.fields.find((f) => f.id === fieldId)?.type === "rating") {
-			return `${value} / 5 ★`;
+			return `${"★".repeat(value)}${"☆".repeat(5 - value)}`;
 		}
 		return String(value);
 	}
 
 	return (
 		<div className="overflow-x-auto rounded-xl border border-gray-a4">
-			<table className="w-full text-3">
-				<thead>
-					<tr className="bg-gray-a2">
-						<th className="px-4 py-3 text-left font-medium text-gray-11 border-b border-gray-a4">
-							#
-						</th>
-						<th className="px-4 py-3 text-left font-medium text-gray-11 border-b border-gray-a4">
-							Date
-						</th>
+			<Table.Root variant="surface">
+				<Table.Header>
+					<Table.Row>
+						<Table.ColumnHeaderCell>#</Table.ColumnHeaderCell>
+						<Table.ColumnHeaderCell>Date</Table.ColumnHeaderCell>
 						{form.fields.map((field) => (
-							<th
-								key={field.id}
-								className="px-4 py-3 text-left font-medium text-gray-11 border-b border-gray-a4 whitespace-nowrap"
-							>
+							<Table.ColumnHeaderCell key={field.id}>
 								{field.label}
-							</th>
+							</Table.ColumnHeaderCell>
 						))}
-					</tr>
-				</thead>
-				<tbody>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
 					{responses.map((response, idx) => (
-						<tr
-							key={response.id}
-							className="border-b border-gray-a3 last:border-b-0 hover:bg-gray-a1"
-						>
-							<td className="px-4 py-3 text-gray-10">{idx + 1}</td>
-							<td className="px-4 py-3 text-gray-10 whitespace-nowrap">
-								{new Date(response.submittedAt).toLocaleDateString()}
-							</td>
+						<Table.Row key={response.id}>
+							<Table.Cell>
+								<Text size="2" color="gray">{idx + 1}</Text>
+							</Table.Cell>
+							<Table.Cell>
+								<Text size="2" color="gray">
+									{new Date(response.submittedAt).toLocaleDateString()}
+								</Text>
+							</Table.Cell>
 							{form.fields.map((field) => (
-								<td
-									key={field.id}
-									className="px-4 py-3 text-gray-12 max-w-48 truncate"
-								>
-									{formatValue(field.id, response.data[field.id])}
-								</td>
+								<Table.Cell key={field.id}>
+									<Text size="2" className="max-w-48 truncate block">
+										{formatValue(field.id, response.data[field.id])}
+									</Text>
+								</Table.Cell>
 							))}
-						</tr>
+						</Table.Row>
 					))}
-				</tbody>
-			</table>
+				</Table.Body>
+			</Table.Root>
 		</div>
 	);
 }

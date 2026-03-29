@@ -1,5 +1,7 @@
 "use client";
 
+import { RadioGroup, Text } from "@whop/react/components";
+
 interface Props {
 	label: string;
 	required: boolean;
@@ -10,30 +12,18 @@ interface Props {
 
 export function RadioInput({ label, required, options, value, onChange }: Props) {
 	return (
-		<fieldset className="flex flex-col gap-1.5">
-			<legend className="text-3 font-medium text-gray-12">
+		<fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+			<legend className="text-2 font-medium text-gray-11">
 				{label}
 				{required && <span className="text-red-9 ml-1">*</span>}
 			</legend>
-			<div className="flex flex-col gap-2">
+			<RadioGroup.Root value={value} onValueChange={onChange}>
 				{options.map((opt) => (
-					<label
-						key={opt}
-						className="flex items-center gap-2 cursor-pointer text-3 text-gray-11 hover:text-gray-12"
-					>
-						<input
-							type="radio"
-							name={label}
-							value={opt}
-							checked={value === opt}
-							onChange={() => onChange(opt)}
-							required={required && !value}
-							className="w-4 h-4 accent-blue-9"
-						/>
+					<RadioGroup.Item key={opt} value={opt}>
 						{opt}
-					</label>
+					</RadioGroup.Item>
 				))}
-			</div>
+			</RadioGroup.Root>
 		</fieldset>
 	);
 }

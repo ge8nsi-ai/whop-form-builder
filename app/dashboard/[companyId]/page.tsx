@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@whop/react/components";
+import { Button, Card, Heading, Text, Badge, Separator } from "@whop/react/components";
 import { v4 as uuid } from "uuid";
 import type { Form } from "@/lib/types";
-import { getForms, saveForm, deleteForm as deleteFormFromStorage } from "@/lib/storage";
+import { getForms, saveForm, deleteForm as deleteFormFromStorage, getResponses } from "@/lib/storage";
 import { FormBuilder } from "@/components/form-builder";
-import { ResponseTable } from "@/components/responses";
-import { ResponseStats } from "@/components/responses";
-import { ExportButton } from "@/components/responses";
-import { getResponses } from "@/lib/storage";
+import { ResponseTable, ResponseStats, ExportButton } from "@/components/responses";
 
 export default function DashboardPage({
 	params,
@@ -27,6 +24,10 @@ export default function DashboardPage({
 		});
 	}, [params]);
 
+	function refresh() {
+		setForms(getForms(companyId));
+	}
+
 	function createForm() {
 		const newForm: Form = {
 			id: uuid(),
@@ -38,19 +39,19 @@ export default function DashboardPage({
 			updatedAt: Date.now(),
 		};
 		saveForm(newForm);
-		setForms(getForms(companyId));
+		refresh();
 		setActiveForm(newForm);
 		setTab("build");
 	}
 
 	function handleFormChange(updated: Form) {
 		setActiveForm(updated);
-		setForms(getForms(companyId));
+		refresh();
 	}
 
 	function deleteForm(formId: string) {
 		deleteFormFromStorage(companyId, formId);
-		setForms(getForms(companyId));
+		refresh();
 		if (activeForm?.id === formId) {
 			setActiveForm(null);
 		}
@@ -59,7 +60,10 @@ export default function DashboardPage({
 	if (!companyId) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
-				<p className="text-4 text-gray-8">Loading...</p>
+				<div className="flex flex-col items-center gap-3">
+					<div className="w-8 h-8 border-2 border-blue-a8 border-t-transparent rounded-full animate-spin" />
+					<Text color="gray">Loading...</Text>
+				</div>
 			</div>
 		);
 	}
@@ -67,33 +71,51 @@ export default function DashboardPage({
 	return (
 		<div className="min-h-screen flex">
 			<aside className="w-64 border-r border-gray-a4 bg-gray-a1 p-4 flex flex-col gap-3 flex-shrink-0">
-				<h2 className="text-5 font-bold text-gray-12 px-1">Your Forms</h2>
+				<Heading size="4" weight="bold" className="px-1">Your Forms</Heading>
 				<Button variant="classic" size="2" onClick={createForm}>
 					+ New Form
 				</Button>
-				<div className="flex flex-col gap-1 mt-2 overflow-y-auto flex-1">
+				<Separator size="4" />
+				<div className="flex flex-col gap-1 mt-1 overflow-y-auto flex-1">
 					{forms.length === 0 ? (
-						<p className="text-3 text-gray-8 px-1">No forms yet</p>
+						<Text size="2" color="gray" className="px-1">No forms yet</Text>
 					) : (
-						forms.map((form) => (
-							<div
-								key={form.id}
-								className={`group flex items-center justify-between rounded-lg px-3 py-2 cursor-pointer transition-colors ${
-									activeForm?.id === form.id
-										? "bg-blue-a3 text-blue-11"
-										: "hover:bg-gray-a3 text-gray-11"
-								}`}
-								onClick={() => {
-									setActiveForm(form);
-									setTab("build");
-								}}
-							>
-								<span className="text-3 truncate flex-1">{form.title}</span>
-								<span className="text-2 text-gray-8 ml-2">
-									{form.fields.length} fields
-								</span>
-							</div>
-						))
+						forms.map((form) => {
+							const count = getResponses(form.id).length;
+							return (
+								<div
+									key={form.id}
+									className={`group flex items-center justify-between rounded-lg px-3 py-2.5 cursor-pointer transition-colors ${
+										activeForm?.id === form.id
+											? "bg-blue-a3"
+											: "hover:bg-gray-a3"
+									}`}
+									onClick={() => {
+										setActiveForm(form);
+										setTab("build");
+									}}
+								>
+									<div className="flex-1 min-w-0">
+										<Text
+											size="2"
+											weight={activeForm?.id === form.id ? "medium" : "regular"}
+											className="block truncate"
+										>
+											{form.title}
+										</Text>
+										<div className="flex gap-1.5 mt-0.5">
+											<Text size="1" color="gray">
+												{form.fields.length}f
+											</Text>
+											<Text size="1" color="gray">·</Text>
+											<Text size="1" color={count > 0 ? "blue" : "gray"}>
+												{count}r
+											</Text>
+										</div>
+									</div>
+								</div>
+							);
+						})
 					)}
 				</div>
 			</aside>
@@ -101,14 +123,13 @@ export default function DashboardPage({
 			<main className="flex-1 p-6 overflow-y-auto">
 				{!activeForm ? (
 					<div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-						<div className="text-8">📋</div>
-						<h2 className="text-6 font-bold text-gray-12">
-							Form Builder
-						</h2>
-						<p className="text-4 text-gray-9 max-w-md">
-							Create a form or select one from the sidebar to start
-							building.
-						</p>
+						<div className="w-16 h-16 rounded-2xl bg-gray-a3 flex items-center justify-center text-7">
+							📋
+						</div>
+						<Heading size="5" weight="bold">Form Builder</Heading>
+						<Text size="3" color="gray" className="max-w-md">
+							Create a form or select one from the sidebar to start building.
+						</Text>
 						<Button variant="classic" size="3" onClick={createForm}>
 							Create Your First Form
 						</Button>
@@ -148,7 +169,8 @@ export default function DashboardPage({
 									/>
 								)}
 								<Button
-									variant="ghost"
+									variant="soft"
+									color="red"
 									size="2"
 									onClick={() => {
 										if (

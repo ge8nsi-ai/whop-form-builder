@@ -1,5 +1,7 @@
 "use client";
 
+import { Checkbox, Text } from "@whop/react/components";
+
 interface Props {
 	label: string;
 	required: boolean;
@@ -18,26 +20,20 @@ export function CheckboxInput({ label, required, options, value, onChange }: Pro
 	}
 
 	return (
-		<fieldset className="flex flex-col gap-1.5">
-			<legend className="text-3 font-medium text-gray-12">
+		<fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+			<legend className="text-2 font-medium text-gray-11">
 				{label}
 				{required && <span className="text-red-9 ml-1">*</span>}
 			</legend>
 			<div className="flex flex-col gap-2">
 				{options.map((opt) => (
-					<label
+					<Checkbox
 						key={opt}
-						className="flex items-center gap-2 cursor-pointer text-3 text-gray-11 hover:text-gray-12"
+						checked={value.includes(opt)}
+						onCheckedChange={() => toggle(opt)}
 					>
-						<input
-							type="checkbox"
-							value={opt}
-							checked={value.includes(opt)}
-							onChange={() => toggle(opt)}
-							className="w-4 h-4 accent-blue-9"
-						/>
 						{opt}
-					</label>
+					</Checkbox>
 				))}
 			</div>
 		</fieldset>

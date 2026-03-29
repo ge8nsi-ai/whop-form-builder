@@ -1,5 +1,6 @@
 "use client";
 
+import { Card, Text, Heading } from "@whop/react/components";
 import type { Form, FormResponse } from "@/lib/types";
 
 interface Props {
@@ -35,14 +36,14 @@ export function ResponseStats({ form, responses }: Props) {
 
 	return (
 		<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-			<StatCard label="Total Responses" value={total} />
+			<StatCard label="Total" value={total} />
 			<StatCard label="Today" value={todayCount} />
 			<StatCard label="This Week" value={weekCount} />
 			<StatCard label="Fields" value={form.fields.length} />
 			{avgRatings.map((r) => (
 				<StatCard
 					key={r.label}
-					label={`Avg: ${r.label}`}
+					label={r.label}
 					value={`${r.avg} ★`}
 					sub={`${r.count} ratings`}
 				/>
@@ -61,12 +62,12 @@ function StatCard({
 	sub?: string;
 }) {
 	return (
-		<div className="rounded-xl border border-gray-a4 bg-gray-a1 p-4">
-			<div className="text-2 text-gray-9 uppercase tracking-wider mb-1">
+		<Card className="p-4">
+			<Text size="1" color="gray" className="uppercase tracking-wider block mb-1">
 				{label}
-			</div>
-			<div className="text-6 font-bold text-gray-12">{value}</div>
-			{sub && <div className="text-2 text-gray-8 mt-0.5">{sub}</div>}
-		</div>
+			</Text>
+			<Heading size="5" weight="bold">{value}</Heading>
+			{sub && <Text size="1" color="gray" className="mt-0.5 block">{sub}</Text>}
+		</Card>
 	);
 }

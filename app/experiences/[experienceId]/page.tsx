@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Card, Heading, Text, Button } from "@whop/react/components";
 import type { Form } from "@/lib/types";
 import { getForms } from "@/lib/storage";
 import { FormRenderer } from "@/components/form-viewer";
@@ -16,8 +17,6 @@ export default function ExperiencePage({
 
 	useEffect(() => {
 		params.then(({ experienceId }) => {
-			// In a real app, experienceId maps to a companyId.
-			// For client-side, we use experienceId as the companyId key.
 			setCompanyId(experienceId);
 			setForms(getForms(experienceId));
 		});
@@ -27,16 +26,17 @@ export default function ExperiencePage({
 		return (
 			<div className="min-h-screen py-8 px-4">
 				<div className="max-w-2xl mx-auto">
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="2"
 						onClick={() => setSelectedForm(null)}
-						className="text-3 text-blue-10 hover:text-blue-11 mb-4 bg-transparent border-none cursor-pointer"
+						className="mb-4"
 					>
 						← Back to forms
-					</button>
-					<div className="rounded-2xl border border-gray-a4 bg-gray-a1 p-6">
+					</Button>
+					<Card className="p-6">
 						<FormRenderer form={selectedForm} />
-					</div>
+					</Card>
 				</div>
 			</div>
 		);
@@ -45,39 +45,41 @@ export default function ExperiencePage({
 	return (
 		<div className="min-h-screen py-8 px-4">
 			<div className="max-w-2xl mx-auto">
-				<h1 className="text-7 font-bold text-gray-12 mb-2">Forms</h1>
-				<p className="text-4 text-gray-10 mb-6">
+				<Heading size="6" weight="bold" className="mb-2">Forms</Heading>
+				<Text size="3" color="gray" className="mb-6 block">
 					Select a form to fill out.
-				</p>
+				</Text>
 
 				{forms.length === 0 ? (
-					<div className="text-center py-16 text-gray-8">
-						<div className="text-8 mb-4">📋</div>
-						<p className="text-4">No forms available yet.</p>
-						<p className="text-3 mt-1">
-							The creator hasn&apos;t published any forms.
-						</p>
-					</div>
+					<Card className="p-12 text-center">
+						<div className="text-7 mb-4 opacity-60">📋</div>
+						<Heading size="4" weight="semi-bold" className="mb-2">
+							No forms available
+						</Heading>
+						<Text size="2" color="gray">
+							The creator hasn&apos;t published any forms yet.
+						</Text>
+					</Card>
 				) : (
 					<div className="flex flex-col gap-3">
 						{forms.map((form) => (
-							<div
+							<Card
 								key={form.id}
-								className="rounded-xl border border-gray-a4 bg-gray-a1 p-4 cursor-pointer hover:bg-gray-a2 transition-colors"
+								className="p-5 cursor-pointer hover:bg-gray-a2 transition-colors"
 								onClick={() => setSelectedForm(form)}
 							>
-								<h3 className="text-4 font-semibold text-gray-12">
+								<Heading size="3" weight="semi-bold" className="mb-1">
 									{form.title}
-								</h3>
+								</Heading>
 								{form.description && (
-									<p className="text-3 text-gray-10 mt-1">
+									<Text size="2" color="gray" className="block mb-2">
 										{form.description}
-									</p>
+									</Text>
 								)}
-								<p className="text-2 text-gray-8 mt-2">
+								<Text size="1" color="gray">
 									{form.fields.length} fields
-								</p>
-							</div>
+								</Text>
+							</Card>
 						))}
 					</div>
 				)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Text } from "@whop/react/components";
 
 interface Props {
 	label: string;
@@ -13,8 +14,8 @@ export function RatingInput({ label, required, value, onChange }: Props) {
 	const [hovered, setHovered] = useState(0);
 
 	return (
-		<fieldset className="flex flex-col gap-1.5">
-			<legend className="text-3 font-medium text-gray-12">
+		<fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+			<legend className="text-2 font-medium text-gray-11">
 				{label}
 				{required && <span className="text-red-9 ml-1">*</span>}
 			</legend>
@@ -26,7 +27,11 @@ export function RatingInput({ label, required, value, onChange }: Props) {
 						onClick={() => onChange(star)}
 						onMouseEnter={() => setHovered(star)}
 						onMouseLeave={() => setHovered(0)}
-						className="text-6 transition-transform hover:scale-110 cursor-pointer bg-transparent border-none p-0"
+						className="text-6 transition-all duration-150 hover:scale-125 cursor-pointer bg-transparent border-none p-0"
+						style={{
+							color: star <= (hovered || value) ? "var(--amber-9)" : "var(--gray-8)",
+							filter: star <= (hovered || value) ? "drop-shadow(0 0 4px var(--amber-a5))" : "none",
+						}}
 					>
 						{star <= (hovered || value) ? "★" : "☆"}
 					</button>

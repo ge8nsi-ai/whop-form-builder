@@ -1,5 +1,7 @@
 "use client";
 
+import { Select, Text } from "@whop/react/components";
+
 interface Props {
 	label: string;
 	required: boolean;
@@ -11,23 +13,20 @@ interface Props {
 export function SelectInput({ label, required, options, value, onChange }: Props) {
 	return (
 		<div className="flex flex-col gap-1.5">
-			<label className="text-3 font-medium text-gray-12">
+			<Text as="label" size="2" weight="medium" color="gray">
 				{label}
 				{required && <span className="text-red-9 ml-1">*</span>}
-			</label>
-			<select
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				required={required}
-				className="w-full px-3 py-2 rounded-lg border border-gray-a4 bg-gray-a2 text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-a8 focus:border-transparent text-3"
-			>
-				<option value="">Select an option</option>
-				{options.map((opt) => (
-					<option key={opt} value={opt}>
-						{opt}
-					</option>
-				))}
-			</select>
+			</Text>
+			<Select.Root value={value} onValueChange={onChange}>
+				<Select.Trigger placeholder="Select an option" />
+				<Select.Content>
+					{options.map((opt) => (
+						<Select.Item key={opt} value={opt}>
+							{opt}
+						</Select.Item>
+					))}
+				</Select.Content>
+			</Select.Root>
 		</div>
 	);
 }

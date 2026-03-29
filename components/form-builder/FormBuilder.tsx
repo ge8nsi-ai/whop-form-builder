@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@whop/react/components";
+import { TextField, TextArea, Text, Heading, Separator, Card } from "@whop/react/components";
 import {
 	DndContext,
 	closestCenter,
@@ -97,34 +97,36 @@ export function FormBuilder({ form, onFormChange }: Props) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-3">
-				<input
-					type="text"
-					value={title}
-					onChange={(e) => handleTitleChange(e.target.value)}
-					placeholder="Form Title"
-					className="w-full text-7 font-bold text-gray-12 bg-transparent border-none focus:outline-none placeholder:text-gray-7"
-				/>
-				<input
-					type="text"
-					value={description}
-					onChange={(e) => handleDescriptionChange(e.target.value)}
-					placeholder="Add a description..."
-					className="w-full text-4 text-gray-10 bg-transparent border-none focus:outline-none placeholder:text-gray-7"
-				/>
-			</div>
+			<Card className="p-6">
+				<TextField.Root size="3" className="mb-3">
+					<TextField.Input
+						value={title}
+						onChange={(e) => handleTitleChange(e.target.value)}
+						placeholder="Form Title"
+					/>
+				</TextField.Root>
+				<TextField.Root size="2">
+					<TextField.Input
+						value={description}
+						onChange={(e) => handleDescriptionChange(e.target.value)}
+						placeholder="Add a description..."
+					/>
+				</TextField.Root>
+			</Card>
 
-			<div className="border-t border-gray-a4 pt-4">
-				<p className="text-2 font-medium text-gray-9 mb-3 uppercase tracking-wider">
+			<div>
+				<Text size="2" weight="medium" color="gray" className="mb-3 uppercase tracking-wider">
 					Add Field
-				</p>
+				</Text>
 				<FieldTypePicker onAdd={addField} />
 			</div>
 
+			<Separator size="4" />
+
 			{form.fields.length === 0 ? (
-				<div className="text-center py-12 text-gray-8">
-					<p className="text-4 mb-1">No fields yet</p>
-					<p className="text-3">Click a field type above to get started</p>
+				<div className="text-center py-12">
+					<Text size="4" color="gray" className="block mb-1">No fields yet</Text>
+					<Text size="2" color="gray">Click a field type above to get started</Text>
 				</div>
 			) : (
 				<DndContext
