@@ -13,11 +13,25 @@ export default function ExperiencePage({
 }) {
 	const [forms, setForms] = useState<Form[]>([]);
 	const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		// Load all forms regardless of which company created them
-		setForms(getAllForms());
+		getAllForms().then((data) => {
+			setForms(data);
+			setLoading(false);
+		});
 	}, []);
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="flex flex-col items-center gap-3">
+					<div className="w-8 h-8 border-2 border-blue-a8 border-t-transparent rounded-full animate-spin" />
+					<Text color="gray">Loading forms...</Text>
+				</div>
+			</div>
+		);
+	}
 
 	if (selectedForm) {
 		return (
@@ -29,7 +43,7 @@ export default function ExperiencePage({
 						onClick={() => setSelectedForm(null)}
 						className="mb-4"
 					>
-						← Back to forms
+						Back to forms
 					</Button>
 					<Card className="p-6">
 						<FormRenderer form={selectedForm} />
@@ -49,7 +63,6 @@ export default function ExperiencePage({
 
 				{forms.length === 0 ? (
 					<Card className="p-12 text-center">
-						<div className="text-7 mb-4 opacity-60">📋</div>
 						<Heading size="4" weight="semi-bold" className="mb-2">
 							No forms available
 						</Heading>

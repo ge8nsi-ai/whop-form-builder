@@ -1,79 +1,125 @@
 import type { Form, FormResponse } from "./types";
+import { supabase } from "@/utils/supabase/client";
 
-const FORMS_PREFIX = "whop_forms_";
-const RESPONSES_KEY = (formId: string) => `whop_responses_${formId}`;
+// ---- Forms ----
 
-function safeGet<T>(key: string, fallback: T): T {
-	if (typeof window === "undefined") return fallback;
-	try {
-		const raw = localStorage.getItem(key);
-		return raw ? (JSON.parse(raw) as T) : fallback;
-	} catch {
-		return fallback;
+export async function getForms(ownerId: string): Promise<Form[]> {
+	const { data, error } = await supabase
+		.from("forms")
+		.select("*")
+		.eq("company_id", ownerId)
+		.order("created_at", { ascending: false });
+
+	if (error) {
+		console.error("getForms error:", error);
+		return [];
 	}
+
+	return (data || []).map(rowToForm);
 }
 
-function safeSet(key: string, value: any): void {
-	if (typeof window === "undefined") return;
-	try {
-		localStorage.setItem(key, JSON.stringify(value));
-	} catch {
-		// storage full or unavailable
+export async function getAllForms(): Promise<Form[]> {
+	const { data, error } = await supabase
+		.from("forms")
+		.select("*")
+		.order("created_at", { ascending: false });
+
+	if (error) {
+		console.error("getAllForms error:", error);
+		return [];
 	}
+
+	return (data || []).map(rowToForm);
 }
 
-export function getForms(ownerId: string): Form[] {
-	return safeGet<Form[]>(`${FORMS_PREFIX}${ownerId}`, []);
+export async function getForm(ownerId: string, formId: string): Promise<Form | undefined> {
+	const { data, error } = await supabase
+		.from("forms")
+		.select("*")
+		.eq("id", formId)
+		.single();
+
+	if (error) return undefined;
+	return rowToForm(data);
 }
 
-export function getForm(ownerId: string, formId: string): Form | undefined {
-	return getForms(ownerId).find((f) => f.id === formId);
+export async function saveForm(form: Form): Promise<void> {
+	const { error } = await supabase
+		.from("forms")
+		.upsert({
+			id: form.id,
+			company_id: form.companyId,
+			title: form.title,
+			description: form.description,
+			fields: form.fields,
+			created_at: new Date(form.createdAt).toISOString(),
+			updated_at: new Date(form.updatedAt).toISOString(),
+		});
+
+	if (error) console.error("saveForm error:", error);
 }
 
-export function getAllForms(): Form[] {
-	if (typeof window === "undefined") return [];
-	const all: Form[] = [];
-	for (let i = 0; i < localStorage.length; i++) {
-		const key = localStorage.key(i);
-		if (key && key.startsWith(FORMS_PREFIX)) {
-			try {
-				const forms = JSON.parse(localStorage.getItem(key) || "[]");
-				if (Array.isArray(forms)) all.push(...forms);
-			} catch {}
-		}
+export async function deleteForm(ownerId: string, formId: string): Promise<void> {
+	await supabase.from("form_responses").delete().eq("form_id", formId);
+	const { error } = await supabase.from("forms").delete().eq("id", formId);
+	if (error) console.error("deleteForm error:", error);
+}
+
+// ---- Responses ----
+
+export async function getResponses(formId: string): Promise<FormResponse[]> {
+	const { data, error } = await supabase
+		.from("form_responses")
+		.select("*")
+		.eq("form_id", formId)
+		.order("submitted_at", { ascending: false });
+
+	if (error) {
+		console.error("getResponses error:", error);
+		return [];
 	}
-	return all;
+
+	return (data || []).map((r: any) => ({
+		id: r.id,
+		formId: r.form_id,
+		data: r.data,
+		submittedAt: new Date(r.submitted_at).getTime(),
+	}));
 }
 
-export function saveForm(form: Form): void {
-	const key = `${FORMS_PREFIX}${form.companyId}`;
-	const forms = safeGet<Form[]>(key, []);
-	const idx = forms.findIndex((f) => f.id === form.id);
-	if (idx >= 0) {
-		forms[idx] = form;
-	} else {
-		forms.push(form);
-	}
-	safeSet(key, forms);
+export async function saveResponse(response: FormResponse): Promise<void> {
+	const { error } = await supabase
+		.from("form_responses")
+		.insert({
+			id: response.id,
+			form_id: response.formId,
+			data: response.data,
+			submitted_at: new Date(response.submittedAt).toISOString(),
+		});
+
+	if (error) console.error("saveResponse error:", error);
 }
 
-export function deleteForm(ownerId: string, formId: string): void {
-	const key = `${FORMS_PREFIX}${ownerId}`;
-	const forms = getForms(ownerId).filter((f) => f.id !== formId);
-	safeSet(key, forms);
-	safeSet(RESPONSES_KEY(formId), []);
+export async function getResponseCount(formId: string): Promise<number> {
+	const { count, error } = await supabase
+		.from("form_responses")
+		.select("*", { count: "exact", head: true })
+		.eq("form_id", formId);
+
+	if (error) return 0;
+	return count || 0;
 }
 
-export function getResponses(formId: string): FormResponse[] {
-	return safeGet<FormResponse[]>(RESPONSES_KEY(formId), []);
-}
+// ---- Helpers ----
 
-export function saveResponse(response: FormResponse): void {
-	const responses = getResponses(response.formId);
-	responses.push(response);
-	safeSet(RESPONSES_KEY(response.formId), responses);
-}
-
-export function getResponseCount(formId: string): number {
-	return getResponses(formId).length;
+function rowToForm(row: any): Form {
+	return {
+		id: row.id,
+		companyId: row.company_id,
+		title: row.title,
+		description: row.description || "",
+		fields: row.fields || [],
+		createdAt: new Date(row.created_at).getTime(),
+		updatedAt: new Date(row.updated_at).getTime(),
+	};
 }

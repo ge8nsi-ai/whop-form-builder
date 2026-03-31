@@ -42,10 +42,10 @@ export function FormBuilder({ form, onFormChange }: Props) {
 		}),
 	);
 
-	function updateForm(updates: Partial<Form>) {
+	async function updateForm(updates: Partial<Form>) {
 		const updated = { ...form, ...updates, updatedAt: Date.now() };
 		onFormChange(updated);
-		saveForm(updated);
+		await saveForm(updated);
 	}
 
 	function handleTitleChange(value: string) {

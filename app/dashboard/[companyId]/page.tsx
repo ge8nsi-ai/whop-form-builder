@@ -17,18 +17,31 @@ export default function DashboardPage({
 	const [forms, setForms] = useState<Form[]>([]);
 	const [activeForm, setActiveForm] = useState<Form | null>(null);
 	const [tab, setTab] = useState<"build" | "responses">("build");
+	const [responseCounts, setResponseCounts] = useState<Record<string, number>>({});
+	const [responses, setResponses] = useState<any[]>([]);
+
 	useEffect(() => {
 		params.then(({ companyId: id }) => {
 			setCompanyId(id);
-			setForms(getForms(id));
+			loadForms(id);
 		});
 	}, [params]);
 
-	function refresh() {
-		setForms(getForms(companyId));
+	async function loadForms(id: string) {
+		const data = await getForms(id);
+		setForms(data);
+		const counts: Record<string, number> = {};
+		for (const form of data) {
+			counts[form.id] = (await getResponses(form.id)).length;
+		}
+		setResponseCounts(counts);
 	}
 
-	function createForm() {
+	async function refresh() {
+		await loadForms(companyId);
+	}
+
+	async function createForm() {
 		const newForm: Form = {
 			id: uuid(),
 			companyId,
@@ -38,23 +51,28 @@ export default function DashboardPage({
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 		};
-		saveForm(newForm);
-		refresh();
+		await saveForm(newForm);
+		await refresh();
 		setActiveForm(newForm);
 		setTab("build");
 	}
 
-	function handleFormChange(updated: Form) {
+	async function handleFormChange(updated: Form) {
 		setActiveForm(updated);
-		refresh();
+		await refresh();
 	}
 
-	function deleteForm(formId: string) {
-		deleteFormFromStorage(companyId, formId);
-		refresh();
+	async function handleDelete(formId: string) {
+		await deleteFormFromStorage(companyId, formId);
+		await refresh();
 		if (activeForm?.id === formId) {
 			setActiveForm(null);
 		}
+	}
+
+	async function loadResponses(formId: string) {
+		const data = await getResponses(formId);
+		setResponses(data);
 	}
 
 	if (!companyId) {
@@ -70,23 +88,21 @@ export default function DashboardPage({
 
 	return (
 		<div className="min-h-screen flex">
-		<aside className="w-64 border-r border-gray-a4 bg-gray-a1 p-4 flex flex-col gap-3 flex-shrink-0">
-			<Heading size="4" weight="bold" className="px-1">Your Forms</Heading>
-			<Button variant="classic" size="2" onClick={createForm}>
-				+ New Form
-			</Button>
-			<Link href={`/admin/${companyId}`}>
-				<Button variant="soft" size="2" className="w-full" asChild>
-					<span>⚙ Admin Panel</span>
+			<aside className="w-64 border-r border-gray-a4 bg-gray-a1 p-4 flex flex-col gap-3 flex-shrink-0">
+				<Heading size="4" weight="bold" className="px-1">Your Forms</Heading>
+				<Button variant="classic" size="2" onClick={createForm}>
+					+ New Form
 				</Button>
-			</Link>
-			<Separator size="4" />
+				<Link href={`/admin/${companyId}`}>
+					<Button variant="soft" size="2" className="w-full">Admin Panel</Button>
+				</Link>
+				<Separator size="4" />
 				<div className="flex flex-col gap-1 mt-1 overflow-y-auto flex-1">
 					{forms.length === 0 ? (
 						<Text size="2" color="gray" className="px-1">No forms yet</Text>
 					) : (
 						forms.map((form) => {
-							const count = getResponses(form.id).length;
+							const count = responseCounts[form.id] ?? 0;
 							return (
 								<div
 									key={form.id}
@@ -112,7 +128,7 @@ export default function DashboardPage({
 											<Text size="1" color="gray">
 												{form.fields.length}f
 											</Text>
-											<Text size="1" color="gray">·</Text>
+											<Text size="1" color="gray">/</Text>
 											<Text size="1" color={count > 0 ? "blue" : "gray"}>
 												{count}r
 											</Text>
@@ -129,7 +145,7 @@ export default function DashboardPage({
 				{!activeForm ? (
 					<div className="flex flex-col items-center justify-center h-full gap-4 text-center">
 						<div className="w-16 h-16 rounded-2xl bg-gray-a3 flex items-center justify-center text-7">
-							📋
+							Forms
 						</div>
 						<Heading size="5" weight="bold">Form Builder</Heading>
 						<Text size="3" color="gray" className="max-w-md">
@@ -156,21 +172,24 @@ export default function DashboardPage({
 								</button>
 								<button
 									type="button"
-									onClick={() => setTab("responses")}
+									onClick={() => {
+										setTab("responses");
+										loadResponses(activeForm.id);
+									}}
 									className={`px-4 py-1.5 rounded-md text-3 font-medium transition-colors cursor-pointer border-none ${
 										tab === "responses"
 											? "bg-gray-a4 text-gray-12"
 											: "text-gray-9 hover:text-gray-11 bg-transparent"
 									}`}
 								>
-									Responses ({getResponses(activeForm.id).length})
+									Responses ({responseCounts[activeForm.id] ?? 0})
 								</button>
 							</div>
 							<div className="flex gap-2">
 								{tab === "responses" && (
 									<ExportButton
 										form={activeForm}
-										responses={getResponses(activeForm.id)}
+										responses={responses}
 									/>
 								)}
 								<Button
@@ -183,7 +202,7 @@ export default function DashboardPage({
 												`Delete "${activeForm.title}"? This cannot be undone.`,
 											)
 										) {
-											deleteForm(activeForm.id);
+											handleDelete(activeForm.id);
 										}
 									}}
 								>
@@ -201,11 +220,11 @@ export default function DashboardPage({
 							<div className="flex flex-col gap-6">
 								<ResponseStats
 									form={activeForm}
-									responses={getResponses(activeForm.id)}
+									responses={responses}
 								/>
 								<ResponseTable
 									form={activeForm}
-									responses={getResponses(activeForm.id)}
+									responses={responses}
 								/>
 							</div>
 						)}

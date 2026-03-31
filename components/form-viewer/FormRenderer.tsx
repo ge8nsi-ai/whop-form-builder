@@ -71,7 +71,7 @@ export function FormRenderer({ form }: Props) {
 		return Object.keys(newErrors).length === 0;
 	}
 
-	function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		if (!validate()) return;
 
@@ -81,7 +81,7 @@ export function FormRenderer({ form }: Props) {
 			data: values,
 			submittedAt: Date.now(),
 		};
-		saveResponse(response);
+		await saveResponse(response);
 		setSubmitted(true);
 	}
 

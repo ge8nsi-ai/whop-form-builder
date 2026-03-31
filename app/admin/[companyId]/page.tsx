@@ -18,19 +18,31 @@ export default function AdminPage({
 	const [activeForm, setActiveForm] = useState<Form | null>(null);
 	const [tab, setTab] = useState<"build" | "responses">("build");
 	const [view, setView] = useState<"list" | "editor">("list");
+	const [responses, setResponses] = useState<any[]>([]);
+	const [responseCounts, setResponseCounts] = useState<Record<string, number>>({});
 
 	useEffect(() => {
 		params.then(({ companyId: id }) => {
 			setCompanyId(id);
-			setForms(getForms(id));
+			loadForms(id);
 		});
 	}, [params]);
 
-	function refresh() {
-		setForms(getForms(companyId));
+	async function loadForms(id: string) {
+		const data = await getForms(id);
+		setForms(data);
+		const counts: Record<string, number> = {};
+		for (const form of data) {
+			counts[form.id] = (await getResponses(form.id)).length;
+		}
+		setResponseCounts(counts);
 	}
 
-	function createForm() {
+	async function refresh() {
+		await loadForms(companyId);
+	}
+
+	async function createForm() {
 		const newForm: Form = {
 			id: uuid(),
 			companyId,
@@ -40,28 +52,28 @@ export default function AdminPage({
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 		};
-		saveForm(newForm);
-		refresh();
+		await saveForm(newForm);
+		await refresh();
 		setActiveForm(newForm);
 		setTab("build");
 		setView("editor");
 	}
 
-	function handleFormChange(updated: Form) {
+	async function handleFormChange(updated: Form) {
 		setActiveForm(updated);
-		refresh();
+		await refresh();
 	}
 
-	function deleteForm(formId: string) {
-		deleteFormFromStorage(companyId, formId);
-		refresh();
+	async function handleDelete(formId: string) {
+		await deleteFormFromStorage(companyId, formId);
+		await refresh();
 		if (activeForm?.id === formId) {
 			setActiveForm(null);
 			setView("list");
 		}
 	}
 
-	function duplicateForm(form: Form) {
+	async function duplicateForm(form: Form) {
 		const dup: Form = {
 			...form,
 			id: uuid(),
@@ -69,8 +81,13 @@ export default function AdminPage({
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 		};
-		saveForm(dup);
-		refresh();
+		await saveForm(dup);
+		await refresh();
+	}
+
+	async function loadResponses(formId: string) {
+		const data = await getResponses(formId);
+		setResponses(data);
 	}
 
 	if (!companyId) {
@@ -93,7 +110,7 @@ export default function AdminPage({
 						<div>
 							<Heading size="8" weight="bold">Admin Panel</Heading>
 							<Text size="3" color="gray" className="mt-1 block">
-								{forms.length} form{forms.length !== 1 ? "s" : ""} · {companyId}
+								{forms.length} form{forms.length !== 1 ? "s" : ""} / {companyId}
 							</Text>
 						</div>
 						<Button variant="classic" size="3" onClick={createForm}>
@@ -103,7 +120,6 @@ export default function AdminPage({
 
 					{forms.length === 0 ? (
 						<Card className="p-12 text-center border-dashed">
-							<div className="text-7 mb-4 opacity-60">📋</div>
 							<Heading size="4" weight="semi-bold" className="mb-2">No forms yet</Heading>
 							<Text size="2" color="gray" className="mb-6 block">
 								Create your first form to get started.
@@ -115,7 +131,7 @@ export default function AdminPage({
 					) : (
 						<div className="grid gap-3">
 							{forms.map((form) => {
-								const responses = getResponses(form.id);
+								const count = responseCounts[form.id] ?? 0;
 								return (
 									<Card
 										key={form.id}
@@ -142,11 +158,8 @@ export default function AdminPage({
 													<Badge variant="soft" size="1" color="gray">
 														{form.fields.length} fields
 													</Badge>
-													<Badge variant="soft" size="1" color={responses.length > 0 ? "blue" : "gray"}>
-														{responses.length} responses
-													</Badge>
-													<Badge variant="soft" size="1" color="gray">
-														{new Date(form.updatedAt).toLocaleDateString()}
+													<Badge variant="soft" size="1" color={count > 0 ? "blue" : "gray"}>
+														{count} responses
 													</Badge>
 												</div>
 											</div>
@@ -165,6 +178,7 @@ export default function AdminPage({
 														setActiveForm(form);
 														setTab("responses");
 														setView("editor");
+														loadResponses(form.id);
 													}}
 												>
 													Responses
@@ -175,7 +189,7 @@ export default function AdminPage({
 													size="1"
 													onClick={() => {
 														if (confirm(`Delete "${form.title}"?`)) {
-															deleteForm(form.id);
+															handleDelete(form.id);
 														}
 													}}
 												>
@@ -207,13 +221,13 @@ export default function AdminPage({
 							refresh();
 						}}
 					>
-						← All Forms
+						All Forms
 					</Button>
 					<div className="flex gap-2">
 						{activeForm && (
 							<ExportButton
 								form={activeForm}
-								responses={getResponses(activeForm.id)}
+								responses={responses}
 							/>
 						)}
 					</div>
@@ -235,14 +249,17 @@ export default function AdminPage({
 							</button>
 							<button
 								type="button"
-								onClick={() => setTab("responses")}
+								onClick={() => {
+									setTab("responses");
+									loadResponses(activeForm.id);
+								}}
 								className={`px-4 py-1.5 rounded-md text-3 font-medium transition-colors cursor-pointer border-none ${
 									tab === "responses"
 										? "bg-gray-a4 text-gray-12"
 										: "text-gray-9 hover:text-gray-11 bg-transparent"
 								}`}
 							>
-								Responses ({getResponses(activeForm.id).length})
+								Responses ({responseCounts[activeForm.id] ?? 0})
 							</button>
 						</div>
 
@@ -255,11 +272,11 @@ export default function AdminPage({
 							<div className="flex flex-col gap-6">
 								<ResponseStats
 									form={activeForm}
-									responses={getResponses(activeForm.id)}
+									responses={responses}
 								/>
 								<ResponseTable
 									form={activeForm}
-									responses={getResponses(activeForm.id)}
+									responses={responses}
 								/>
 							</div>
 						)}
