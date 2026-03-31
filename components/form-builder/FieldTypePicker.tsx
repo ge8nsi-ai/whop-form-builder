@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Badge } from "@whop/react/components";
+import { Button } from "@whop/react/components";
 import type { FieldType } from "@/lib/types";
-import { FIELD_TYPE_LABELS } from "@/lib/types";
+import { FIELD_TYPE_LABELS, FIELD_ICONS } from "@/lib/types";
 
 interface Props {
 	onAdd: (type: FieldType) => void;
@@ -18,19 +18,8 @@ const FIELD_TYPES: FieldType[] = [
 	"checkbox",
 	"date",
 	"rating",
+	"file",
 ];
-
-const FIELD_ICONS: Record<FieldType, string> = {
-	text: "Aa",
-	textarea: "¶",
-	email: "@",
-	number: "#",
-	select: "▾",
-	radio: "◉",
-	checkbox: "☑",
-	date: "📅",
-	rating: "★",
-};
 
 export function FieldTypePicker({ onAdd }: Props) {
 	return (

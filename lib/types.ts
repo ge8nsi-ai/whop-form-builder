@@ -7,7 +7,8 @@ export type FieldType =
 	| "radio"
 	| "checkbox"
 	| "date"
-	| "rating";
+	| "rating"
+	| "file";
 
 export interface FormField {
 	id: string;
@@ -45,4 +46,18 @@ export const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 	checkbox: "Multiple Choice",
 	date: "Date",
 	rating: "Rating",
+	file: "File Upload",
+};
+
+export const FIELD_ICONS: Record<FieldType, string> = {
+	text: "Aa",
+	textarea: "¶",
+	email: "@",
+	number: "#",
+	select: "▾",
+	radio: "◉",
+	checkbox: "☑",
+	date: "📅",
+	rating: "★",
+	file: "📎",
 };

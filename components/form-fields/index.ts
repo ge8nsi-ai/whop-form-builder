@@ -7,3 +7,4 @@ export { RadioInput } from "./RadioInput";
 export { CheckboxInput } from "./CheckboxInput";
 export { DateInput } from "./DateInput";
 export { RatingInput } from "./RatingInput";
+export { FileInput } from "./FileInput";

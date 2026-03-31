@@ -66,7 +66,7 @@ export function FieldEditor({ field, onUpdate, onDelete, onClose }: Props) {
 					</TextField.Root>
 				</div>
 
-				{field.type !== "rating" && field.type !== "checkbox" && field.type !== "radio" && (
+				{field.type !== "rating" && field.type !== "checkbox" && field.type !== "radio" && field.type !== "file" && (
 					<div className="flex flex-col gap-1.5">
 						<Text as="label" size="2" weight="medium" color="gray">
 							Placeholder

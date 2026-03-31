@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button, Card, Heading, Text, Badge, Separator } from "@whop/react/components";
 import { v4 as uuid } from "uuid";
 import type { Form } from "@/lib/types";
@@ -70,12 +71,17 @@ export default function DashboardPage({
 
 	return (
 		<div className="min-h-screen flex">
-			<aside className="w-64 border-r border-gray-a4 bg-gray-a1 p-4 flex flex-col gap-3 flex-shrink-0">
-				<Heading size="4" weight="bold" className="px-1">Your Forms</Heading>
-				<Button variant="classic" size="2" onClick={createForm}>
-					+ New Form
+		<aside className="w-64 border-r border-gray-a4 bg-gray-a1 p-4 flex flex-col gap-3 flex-shrink-0">
+			<Heading size="4" weight="bold" className="px-1">Your Forms</Heading>
+			<Button variant="classic" size="2" onClick={createForm}>
+				+ New Form
+			</Button>
+			<Link href={`/admin/${companyId}`}>
+				<Button variant="soft" size="2" className="w-full">
+					⚙ Admin Panel
 				</Button>
-				<Separator size="4" />
+			</Link>
+			<Separator size="4" />
 				<div className="flex flex-col gap-1 mt-1 overflow-y-auto flex-1">
 					{forms.length === 0 ? (
 						<Text size="2" color="gray" className="px-1">No forms yet</Text>

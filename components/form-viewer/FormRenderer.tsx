@@ -15,6 +15,7 @@ import {
 	CheckboxInput,
 	DateInput,
 	RatingInput,
+	FileInput,
 } from "@/components/form-fields";
 import { SuccessScreen } from "./SuccessScreen";
 
@@ -52,6 +53,10 @@ export function FormRenderer({ form }: Props) {
 			} else if (field.type === "rating") {
 				if (!val || val < 1) {
 					newErrors[field.id] = "Please select a rating";
+				}
+			} else if (field.type === "file") {
+				if (!val) {
+					newErrors[field.id] = "Please upload a file";
 				}
 			} else if (!val || (typeof val === "string" && !val.trim())) {
 				newErrors[field.id] = "This field is required";
@@ -169,6 +174,14 @@ function renderField(
 				<RatingInput
 					{...common}
 					value={value || 0}
+					onChange={onChange}
+				/>
+			);
+		case "file":
+			return (
+				<FileInput
+					{...common}
+					value={value || null}
 					onChange={onChange}
 				/>
 			);
