@@ -1,5 +1,5 @@
 import type { Form, FormResponse } from "./types";
-import { supabase } from "@/utils/supabase/client";
+import { supabase, isReady } from "@/utils/supabase/client";
 
 const FORMS_PREFIX = "whop_forms_";
 const RESPONSES_PREFIX = "whop_responses_";
@@ -21,14 +21,10 @@ function safeSet(key: string, value: any): void {
 	} catch {}
 }
 
-function isSupabaseReady(): boolean {
-	return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY);
-}
-
 // ---- Forms ----
 
 export async function getForms(ownerId: string): Promise<Form[]> {
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			const { data, error } = await supabase
 				.from("forms")
@@ -42,7 +38,7 @@ export async function getForms(ownerId: string): Promise<Form[]> {
 }
 
 export async function getAllForms(): Promise<Form[]> {
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			const { data, error } = await supabase
 				.from("forms")
@@ -51,7 +47,6 @@ export async function getAllForms(): Promise<Form[]> {
 			if (!error && data) return data.map(rowToForm);
 		} catch {}
 	}
-	// Fallback: scan localStorage
 	if (typeof window === "undefined") return [];
 	const all: Form[] = [];
 	for (let i = 0; i < localStorage.length; i++) {
@@ -67,7 +62,7 @@ export async function getAllForms(): Promise<Form[]> {
 }
 
 export async function getForm(ownerId: string, formId: string): Promise<Form | undefined> {
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			const { data, error } = await supabase
 				.from("forms")
@@ -77,20 +72,19 @@ export async function getForm(ownerId: string, formId: string): Promise<Form | u
 			if (!error && data) return rowToForm(data);
 		} catch {}
 	}
-	return getForms(ownerId).then((forms) => forms.find((f) => f.id === formId));
+	const forms = await getForms(ownerId);
+	return forms.find((f) => f.id === formId);
 }
 
 export async function saveForm(form: Form): Promise<void> {
-	// Always save to localStorage as backup
-	safeSet(`${FORMS_PREFIX}${form.companyId}`, (() => {
-		const existing = safeGet<Form[]>(`${FORMS_PREFIX}${form.companyId}`, []);
-		const idx = existing.findIndex((f) => f.id === form.id);
-		if (idx >= 0) existing[idx] = form;
-		else existing.push(form);
-		return existing;
-	})());
+	const key = `${FORMS_PREFIX}${form.companyId}`;
+	const existing = safeGet<Form[]>(key, []);
+	const idx = existing.findIndex((f) => f.id === form.id);
+	if (idx >= 0) existing[idx] = form;
+	else existing.push(form);
+	safeSet(key, existing);
 
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			await supabase.from("forms").upsert({
 				id: form.id,
@@ -101,19 +95,16 @@ export async function saveForm(form: Form): Promise<void> {
 				created_at: new Date(form.createdAt).toISOString(),
 				updated_at: new Date(form.updatedAt).toISOString(),
 			});
-		} catch (e) {
-			console.warn("Supabase saveForm failed, using localStorage fallback", e);
-		}
+		} catch {}
 	}
 }
 
 export async function deleteForm(ownerId: string, formId: string): Promise<void> {
-	// Always remove from localStorage
 	const existing = safeGet<Form[]>(`${FORMS_PREFIX}${ownerId}`, []);
 	safeSet(`${FORMS_PREFIX}${ownerId}`, existing.filter((f) => f.id !== formId));
 	safeSet(`${RESPONSES_PREFIX}${formId}`, []);
 
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			await supabase.from("form_responses").delete().eq("form_id", formId);
 			await supabase.from("forms").delete().eq("id", formId);
@@ -124,7 +115,7 @@ export async function deleteForm(ownerId: string, formId: string): Promise<void>
 // ---- Responses ----
 
 export async function getResponses(formId: string): Promise<FormResponse[]> {
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			const { data, error } = await supabase
 				.from("form_responses")
@@ -145,11 +136,11 @@ export async function getResponses(formId: string): Promise<FormResponse[]> {
 }
 
 export async function saveResponse(response: FormResponse): Promise<void> {
-	// Always save to localStorage as backup
-	const existing = safeGet<FormResponse[]>(`${RESPONSES_PREFIX}${response.formId}`, []);
-	safeSet(`${RESPONSES_PREFIX}${response.formId}`, [...existing, response]);
+	const key = `${RESPONSES_PREFIX}${response.formId}`;
+	const existing = safeGet<FormResponse[]>(key, []);
+	safeSet(key, [...existing, response]);
 
-	if (isSupabaseReady()) {
+	if (isReady() && supabase) {
 		try {
 			await supabase.from("form_responses").insert({
 				id: response.id,
@@ -157,9 +148,7 @@ export async function saveResponse(response: FormResponse): Promise<void> {
 				data: response.data,
 				submitted_at: new Date(response.submittedAt).toISOString(),
 			});
-		} catch (e) {
-			console.warn("Supabase saveResponse failed, using localStorage fallback", e);
-		}
+		} catch {}
 	}
 }
 

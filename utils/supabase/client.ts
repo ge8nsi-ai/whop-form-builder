@@ -3,10 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-	console.warn(
-		"Supabase env vars not set. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY in .env.local",
-	);
-}
+const hasValidConfig = supabaseUrl && supabaseKey && supabaseUrl.startsWith("https://");
 
-export const supabase = createClient(supabaseUrl || "", supabaseKey || "");
+export const supabase = hasValidConfig
+	? createClient(supabaseUrl, supabaseKey)
+	: null;
+
+export function isReady(): boolean {
+	return hasValidConfig === true;
+}
