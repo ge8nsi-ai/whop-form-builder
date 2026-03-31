@@ -1,9 +1,12 @@
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
-export const supabase = createBrowserClient(
-	supabaseUrl!,
-	supabaseKey!,
-);
+if (!supabaseUrl || !supabaseKey) {
+	console.warn(
+		"Supabase env vars not set. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY in .env.local",
+	);
+}
+
+export const supabase = createClient(supabaseUrl || "", supabaseKey || "");
