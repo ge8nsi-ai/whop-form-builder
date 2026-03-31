@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button, Card, Heading, Text, Badge, Separator } from "@whop/react/components";
+import { Button, Card, Heading, Text, Badge, Separator, Link } from "@whop/react/components";
 import { v4 as uuid } from "uuid";
 import type { Form } from "@/lib/types";
 import { getForms, saveForm, deleteForm as deleteFormFromStorage, getResponses } from "@/lib/storage";
@@ -77,8 +76,8 @@ export default function DashboardPage({
 				+ New Form
 			</Button>
 			<Link href={`/admin/${companyId}`}>
-				<Button variant="soft" size="2" className="w-full">
-					⚙ Admin Panel
+				<Button variant="soft" size="2" className="w-full" asChild>
+					<span>⚙ Admin Panel</span>
 				</Button>
 			</Link>
 			<Separator size="4" />
